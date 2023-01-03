@@ -47,7 +47,7 @@ export const deserializeUser = async (
     res.locals.user = user;
 
     next();
-  } catch (err: any) {
+  } catch (err: unknown) {
     next(err);
   }
 };

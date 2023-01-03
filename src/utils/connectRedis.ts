@@ -9,9 +9,11 @@ const connectRedis = async () => {
   try {
     await redisClient.connect();
     console.log('Redis client connected...');
-  } catch (err: any) {
+  } catch (err: unknown) {
+    if (err instanceof Error) {
     console.log(err.message);
     setTimeout(connectRedis, 5000);
+    }
   }
 };
 

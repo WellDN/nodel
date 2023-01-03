@@ -11,6 +11,23 @@ import AppError from '../utils/appError';
 import redisClient from '../utils/connectRedis';
 import { signJwt, verifyJwt } from '../utils/jwt';
 
+export class CustomError extends Error {
+  status = 409;
+  code: number;
+
+  constructor(code: number, message: string) {
+    super(message);
+
+    this.code = code;
+
+    Object.setPrototypeOf(this, CustomError.prototype);
+  }
+
+  getErrorMessage() {
+    return 'Something went wrong: ' + this.code;
+  }
+}
+
 export const excludedFields = ['password'];
 
 const accessTokenCookieOptions: CookieOptions = {
@@ -52,13 +69,14 @@ export const registerHandler = async (
         user,
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    if (err instanceof CustomError) {
     if (err.code === 11000) {
       return res.status(409).json({
         status: 'fail',
         message: 'Email already exist',
       });
-    }
+    }}
     next(err);
   }
 };
@@ -90,7 +108,7 @@ export const loginHandler = async (
       status: 'success',
       access_token,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     next(err);
   }
 };
@@ -145,7 +163,7 @@ export const refreshAccessTokenHandler = async (
       status: 'success',
       access_token,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     next(err);
   }
 };
@@ -160,7 +178,7 @@ export const logoutHandler = async (
     await redisClient.del(user._id);
     logout(res);
     return res.status(200).json({ status: 'success' });
-  } catch (err: any) {
+  } catch (err: unknown) {
     next(err);
   }
 };

@@ -9,9 +9,11 @@ const connectDB = async () => {
   try {
     await mongoose.connect(dbUrl);
     console.log('Database connected...');
-  } catch (error: any) {
+  } catch (error: unknown) {
+  if (error instanceof Error) {
     console.log(error.message);
     setTimeout(connectDB, 5000);
+  }
   }
 };
 

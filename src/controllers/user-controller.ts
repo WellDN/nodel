@@ -14,7 +14,7 @@ export const getMeHandler = (
         user,
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     next(err);
   }
 };
@@ -33,7 +33,7 @@ export const getAllUsersHandler = async (
         users,
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     next(err);
   }
 };
