@@ -1,11 +1,22 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { logoutHandler } from "./controllers/auth-controller";
 
 export function Signup() {
+  const [text, setText] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [signup, setSignup] = useState<boolean>();
+  const [success, setSuccess] = useState(false);
+  
+  useEffect(() => {
+    fetch("http://localhost:8000/signup")
+    .then((res) => res.json())
+    .then((data) => setSignup(data.signup));
+  }, [])
+  
     return(
     <div className="w-full max-w-xs">
-    <form className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" >
+    <form
+     className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
     <div className="mb-4">
     <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
       Email
@@ -74,20 +85,10 @@ export function Signup() {
     )
 }
 
-
-export function Logout() {
-    return(
-        <div>
-        <button onClick={() => {}}>
-            logout
-            </button>
-            </div>
-    )
-}
-
-
 export function Login() {
-    return(  
+  const [login, setLogin] = useState();
+  const [logged, isLogged] = useState(false);  
+  return(  
       <>
 <div className="w-full max-w-xs">
     <form className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
@@ -142,3 +143,17 @@ export function Login() {
     </>
     )
   }
+
+export function Logout() {
+  
+  const [logout, setLogout] = useState<void>();
+  
+  return(
+        <div>
+        <button onClick={() => {}}>
+            logout
+            </button>
+            </div>
+    )
+}
+

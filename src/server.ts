@@ -42,6 +42,10 @@ class ICustomError extends Error {
 
 const app = express();
 
+app.post("/home", (req, res) => {
+  console.log(req.body)
+})
+
 const port = config.get<number>('port');
 app.listen(port, () => {
   console.log(`Server started on port: ${port}`);
