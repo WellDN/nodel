@@ -10,6 +10,7 @@
         "start": "ts-node-dev --respawn --transpile-only src/server.ts"
     },
     "dependencies": {
+        "@hookform/resolvers": "^2.9.10",
         "@typegoose/typegoose": "^9.8.0",
         "@vitejs/plugin-react": "^3.0.1",
         "axios": "^1.2.2",
@@ -25,12 +26,13 @@
         "nodemon": "^2.0.20",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
+        "react-hook-form": "^7.41.5",
         "react-router-dom": "^6.6.1",
         "redis": "^4.0.6",
         "ts-node-dev": "^1.1.8",
         "typescript-react": "^0.2.2",
         "vite": "^4.0.4",
-        "zod": "^3.14.4"
+        "zod": "^3.20.2"
     },
     "devDependencies": {
         "@types/bcryptjs": "^2.4.2",

@@ -2,23 +2,61 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 export function Signup() {
-  const [text, setText] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [signup, setSignup] = useState<boolean>();
+  
+  const [signup, setSignup] = useState();
   const [success, setSuccess] = useState(false);
+
+  const [email, setEmail] = useState({
+    inputEmail: ''
+  });
   
+  const [password, setPassword] = useState({
+    firstPassword: '',
+    confirmPassword: ''
+  })
+
+  const [validLength, setValidLength] = useState(false);
+  const [hasNumber, setHasNumber] = useState(false);
+  const [upperCase, setUpperCase] = useState(false);
+  const [lowerCase, setLowerCase] = useState(false);
+  const [specialChar, setSpecialChar] = useState(false);
+  const [match, setMatch] = useState(false);
+  const [requiredLength, setRequiredLength] = useState(8)
+
+
+const inputChange: (event: React.ChangeEvent<HTMLInputElement>) => void = (event) => {
+  const { value, name } = event.target;
+  setPassword({
+    ...password,
+    [name]: value
+  })
+  setEmail({
+    ...email
+  })
+}
+useEffect(() => {
+  setValidLength(password.firstPassword.length >= requiredLength ? true : false);
+  setUpperCase(password.firstPassword.toLowerCase() !== password.firstPassword);
+  setLowerCase(password.firstPassword.toUpperCase() !== password.firstPassword);
+  setHasNumber(/\d/.test(password.firstPassword));
+  setMatch(!!password.firstPassword && password.firstPassword === password.confirmPassword)
+  setSpecialChar(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$/.test(password.firstPassword));
+
+}, [password, requiredLength]);
+
   useEffect(() => {
-    fetch("http://localhost:8000/signup")
+    fetch('http://localhost:8000/signup')
     .then((res) => res.json())
-    .then((data) => setSignup(data.signup));
-  }, [])
-  
+    .then((data) => setSignup(data.signup))
+  })
+
     return(
     <div className="w-full max-w-xs">
     <form
      className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
     <div className="mb-4">
-    <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
+    <label
+     className="block text-gray-700 text-sm font-bold mb-2" htmlFor="inputEmail">
       Email
     </label>
     <input
@@ -29,23 +67,29 @@ export function Signup() {
     autoComplete="email"
     placeholder="Email"
     required
+    onChange={inputChange}
     />
   </div>
   <div className="mb-4">
-    <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="firstPassword">
+    <label
+    className="block text-gray-700 text-sm font-bold mb-2"
+    htmlFor="firstPassword">
    Password
     </label>
-    <input    
+    <input
     required
-    id="password" 
+    id="password"
     name="password" 
     type="password" 
     placeholder="******************"
     className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+    onChange={inputChange}
     />
   </div>
   <div className="mb-6">
-    <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="confirmPassword">
+    <label 
+    className="block text-gray-700 text-sm font-bold mb-2" 
+    htmlFor="confirmPassword">
       Confirm Password
     </label>
     <input 
@@ -93,7 +137,7 @@ export function Login() {
 <div className="w-full max-w-xs">
     <form className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
       <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
+        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
           Email
         </label>
         <input
@@ -156,4 +200,3 @@ export function Logout() {
             </div>
     )
 }
-
