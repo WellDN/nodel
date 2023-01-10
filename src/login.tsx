@@ -4,22 +4,21 @@ import { Link } from "react-router-dom";
 export function Signup() {
   
   const [signup, setSignup] = useState();
-  const [success, setSuccess] = useState(false);
 
   const [email, setEmail] = useState({
-    inputEmail: ''
+    email: ''
   });
   
   const [password, setPassword] = useState({
     firstPassword: '',
     confirmPassword: ''
   })
-
   const [validLength, setValidLength] = useState(false);
   const [hasNumber, setHasNumber] = useState(false);
   const [upperCase, setUpperCase] = useState(false);
   const [lowerCase, setLowerCase] = useState(false);
   const [specialChar, setSpecialChar] = useState(false);
+  const [ispecialChar, isetSpecialChar] = useState(false);
   const [match, setMatch] = useState(false);
   const [requiredLength, setRequiredLength] = useState(8)
 
@@ -30,8 +29,10 @@ const inputChange: (event: React.ChangeEvent<HTMLInputElement>) => void = (event
     ...password,
     [name]: value
   })
+
   setEmail({
-    ...email
+    ...email,
+    [name]: value
   })
 }
 useEffect(() => {
@@ -40,9 +41,9 @@ useEffect(() => {
   setLowerCase(password.firstPassword.toUpperCase() !== password.firstPassword);
   setHasNumber(/\d/.test(password.firstPassword));
   setMatch(!!password.firstPassword && password.firstPassword === password.confirmPassword)
-  setSpecialChar(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$/.test(password.firstPassword));
-
-}, [password, requiredLength]);
+  setSpecialChar(/[ `!@#$%^&*()_+\-=\]{};':"\\|,.<>?~]/.test(password.firstPassword));
+  isetSpecialChar(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email.email))
+}, [password, requiredLength, email]);
 
   useEffect(() => {
     fetch('http://localhost:8000/signup')
@@ -56,15 +57,19 @@ useEffect(() => {
      className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
     <div className="mb-4">
     <label
-     className="block text-gray-700 text-sm font-bold mb-2" htmlFor="inputEmail">
+     className="block text-gray-700 text-sm font-bold mb-2"
+     htmlFor="inputEmail"
+     >
       Email
+      <sup className="text-red-300 text-xs -top-0.5 -right-2"
+       title="required">*</sup>
     </label>
     <input
     className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-    id="email-adress"
+    id="inputEmail"
     name="email"
     type="text"
-    autoComplete="email"
+    autoComplete="on"
     placeholder="Email"
     required
     onChange={inputChange}
@@ -73,13 +78,16 @@ useEffect(() => {
   <div className="mb-4">
     <label
     className="block text-gray-700 text-sm font-bold mb-2"
-    htmlFor="firstPassword">
+    htmlFor="firstPassword"
+    >
    Password
+   <sup className="text-red-300 text-xs -top-0.5 -right-2"
+    title="required">*</sup>
     </label>
     <input
     required
-    id="password"
-    name="password" 
+    id="confirmPassword"
+    name="firstPassword"
     type="password" 
     placeholder="******************"
     className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -87,28 +95,53 @@ useEffect(() => {
     />
   </div>
   <div className="mb-6">
-    <label 
+    <label
     className="block text-gray-700 text-sm font-bold mb-2" 
     htmlFor="confirmPassword">
       Confirm Password
+    <sup className="text-red-300 text-xs -top-0.5 -right-2"
+    title="required">*</sup>
     </label>
-    <input 
+    <input
+    onChange={inputChange}
     required       
     placeholder="******************"
     id="confirmPassword"
     type="password"
     name="confirmPassword"
-    className="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+    className="shadow appearance-none border border-gray-500 rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
     />
-    <p className="text-red-500 text-xs italic">Please confirm your password.</p>
+    <p className="text-gray-500 text-xs italic">Please confirm your password.</p>
+    <ul>
+            <li>
+              Valid Length: {validLength ? <span>True</span> : <span>False</span>}
+            </li>
+            <li>
+              Has a Number: {hasNumber ? <span>True</span> : <span>False</span>}
+            </li>
+            <li>
+              UpperCase: {upperCase ? <span>True</span> : <span>False</span>}
+            </li>
+            <li>
+              LowerCase: {lowerCase ? <span>True</span> : <span>False</span>}
+            </li>
+            <li>Match: {match ? <span>True</span> : <span>False</span>}</li>
+            <li>
+              Special Character: {specialChar ? <span>True</span> : <span>False</span>}
+            </li>
+            <li>
+              Special Email Character: {ispecialChar ? <span>True</span> : <span>False</span>}
+            </li>
+          </ul>
   </div>
   <div className="flex items-center justify-between">
   <button
     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
     type="submit"
-    id="register"
+    id="signup"
     name="type"
-    value="register"
+    value="signup"
+    disabled={ !email || !password || !match ? true : false }
     >
       Sign Up
     </button>
@@ -137,7 +170,9 @@ export function Login() {
 <div className="w-full max-w-xs">
     <form className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
       <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
+        <label
+        className="block text-gray-700 text-sm font-bold mb-2" 
+        htmlFor="email">
           Email
         </label>
         <input
@@ -147,20 +182,21 @@ export function Login() {
           name="email"
           type="text"
           placeholder="Email"
-          autoComplete="email" />
+          autoComplete="on" />
       </div>
       <div className="mb-6">
-        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
+        <label 
+        className="block text-gray-700 text-sm font-bold mb-2" 
+        htmlFor="password"
+        >
           Password
         </label>
-        <input className="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+        <input className="shadow appearance-none border border-gray-500 rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
           id="password"
           type="password"
           name="loginPassword"
           placeholder="******************"
-          autoComplete='current-password'
           required />
-        <p className="text-red-500 text-xs italic">Please choose a password.</p>
       </div>
       <div className="flex items-center justify-between">
         <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
