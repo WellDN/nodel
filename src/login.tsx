@@ -1,49 +1,26 @@
+import { SubmitHandler, useForm } from "react-hook-form";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { createUserSchema } from "./schema/user-schema";
 
 export function Signup() {
-  
-  const [signup, setSignup] = useState();
 
-  const [email, setEmail] = useState({
-    email: ''
+  const [signup, setSignup] = useState(false);
+
+type ValidationSchema = z.infer<typeof createUserSchema>;
+
+const Form = () => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ValidationSchema>({
+    resolver: zodResolver(createUserSchema),
   });
-  
-  const [password, setPassword] = useState({
-    firstPassword: '',
-    confirmPassword: ''
-  })
-  const [validLength, setValidLength] = useState(false);
-  const [hasNumber, setHasNumber] = useState(false);
-  const [upperCase, setUpperCase] = useState(false);
-  const [lowerCase, setLowerCase] = useState(false);
-  const [specialChar, setSpecialChar] = useState(false);
-  const [ispecialChar, isetSpecialChar] = useState(false);
-  const [match, setMatch] = useState(false);
-  const [requiredLength, setRequiredLength] = useState(8)
 
-
-const inputChange: (event: React.ChangeEvent<HTMLInputElement>) => void = (event) => {
-  const { value, name } = event.target;
-  setPassword({
-    ...password,
-    [name]: value
-  })
-
-  setEmail({
-    ...email,
-    [name]: value
-  })
-}
-useEffect(() => {
-  setValidLength(password.firstPassword.length >= requiredLength ? true : false);
-  setUpperCase(password.firstPassword.toLowerCase() !== password.firstPassword);
-  setLowerCase(password.firstPassword.toUpperCase() !== password.firstPassword);
-  setHasNumber(/\d/.test(password.firstPassword));
-  setMatch(!!password.firstPassword && password.firstPassword === password.confirmPassword)
-  setSpecialChar(/[ `!@#$%^&*()_+\-=\]{};':"\\|,.<>?~]/.test(password.firstPassword));
-  isetSpecialChar(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email.email))
-}, [password, requiredLength, email]);
+  const onSubmit: SubmitHandler<ValidationSchema> = (data) => console.log(data);
 
   useEffect(() => {
     fetch('http://localhost:8000/signup')
@@ -54,6 +31,7 @@ useEffect(() => {
     return(
     <div className="w-full max-w-xs">
     <form
+    onSubmit={handleSubmit(onSubmit)}
      className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
     <div className="mb-4">
     <label
@@ -72,7 +50,7 @@ useEffect(() => {
     autoComplete="on"
     placeholder="Email"
     required
-    onChange={inputChange}
+    onChange={}
     />
   </div>
   <div className="mb-4">
@@ -91,7 +69,7 @@ useEffect(() => {
     type="password" 
     placeholder="******************"
     className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-    onChange={inputChange}
+    onChange={}
     />
   </div>
   <div className="mb-6">
@@ -103,7 +81,7 @@ useEffect(() => {
     title="required">*</sup>
     </label>
     <input
-    onChange={inputChange}
+    onChange={}
     required       
     placeholder="******************"
     id="confirmPassword"
@@ -112,27 +90,6 @@ useEffect(() => {
     className="shadow appearance-none border border-gray-500 rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
     />
     <p className="text-gray-500 text-xs italic">Please confirm your password.</p>
-    <ul>
-            <li>
-              Valid Length: {validLength ? <span>True</span> : <span>False</span>}
-            </li>
-            <li>
-              Has a Number: {hasNumber ? <span>True</span> : <span>False</span>}
-            </li>
-            <li>
-              UpperCase: {upperCase ? <span>True</span> : <span>False</span>}
-            </li>
-            <li>
-              LowerCase: {lowerCase ? <span>True</span> : <span>False</span>}
-            </li>
-            <li>Match: {match ? <span>True</span> : <span>False</span>}</li>
-            <li>
-              Special Character: {specialChar ? <span>True</span> : <span>False</span>}
-            </li>
-            <li>
-              Special Email Character: {ispecialChar ? <span>True</span> : <span>False</span>}
-            </li>
-          </ul>
   </div>
   <div className="flex items-center justify-between">
   <button
@@ -141,7 +98,7 @@ useEffect(() => {
     id="signup"
     name="type"
     value="signup"
-    disabled={ !email || !password || !match ? true : false }
+    disabled={}
     >
       Sign Up
     </button>
@@ -160,6 +117,7 @@ useEffect(() => {
 </form>
 </div>
     )
+}
 }
 
 export function Login() {

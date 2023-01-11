@@ -4,9 +4,10 @@ import morgan from 'morgan';
 import config from 'config';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import connectDB from './utils/connectDB';
-import userRouter from './routes/user-route';
-import authRouter from './routes/auth-route';
+import connectDB from './src/utils/connectDB';
+import userRouter from './src/routes/user-route';
+import authRouter from './src/routes/auth-route';
+import bodyParser from 'body-parser';
 
 class CustomError extends Error {
   
@@ -40,7 +41,7 @@ class ICustomError extends Error {
   }
 }
 
-const app = express();
+const app = express().use(cors()).use(bodyParser.json());
 
 app.post("/home", (req, res) => {
   console.log(req.body)
