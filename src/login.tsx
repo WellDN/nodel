@@ -2,37 +2,91 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { createUserSchema } from "./schema/user-schema";
+import { object, string, z } from "zod";
 
-export function Signup() {
+  const createUserSchema = object({
+    
+      name: string({ required_error: 'Name is required' }),
+      email: string({ required_error: 'Email is required' }).email(
+        'Invalid email'
+        ),
+        password: string({ required_error: 'Password is required' })
+        .min(8, 'Password must be more than 8 characters')
+        .max(32, 'Password must be less than 32 characters'),
+      passwordConfirm: string({ required_error: 'Please confirm your password' }),
+    }).refine((data) => data.password === data.passwordConfirm, {
+      path: ['passwordConfirm'],
+      message: 'Passwords do not match',
+    })
+    
+    
+  const loginUserSchema = object({
+      
+      email: string({ required_error: 'Email is required' }).email(
+        'Invalid email or password'
+        ),
+      password: string({ required_error: 'Password is required' }).min(
+        8,
+        'Invalid email or password'
+      ),
+    })
+    
+    type ICreateUserInput = z.infer<typeof createUserSchema>;
+    type ILoginUserInput = z.infer<typeof loginUserSchema>;
 
+    
+  export function Signup() {
+  
   const [signup, setSignup] = useState(false);
 
-type ValidationSchema = z.infer<typeof createUserSchema>;
+useEffect(() => {
+  fetch('http://localhost:8000/signup')
+  .then((res) => res.json())
+  .then((data) => setSignup(data.signup))
+})
 
-const Form = () => {
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<ValidationSchema>({
+  } = useForm<ICreateUserInput>({
     resolver: zodResolver(createUserSchema),
   });
 
-  const onSubmit: SubmitHandler<ValidationSchema> = (data) => console.log(data);
-
-  useEffect(() => {
-    fetch('http://localhost:8000/signup')
-    .then((res) => res.json())
-    .then((data) => setSignup(data.signup))
-  })
+  const onSubmit: SubmitHandler<ICreateUserInput> = (data) => console.log(data);
 
     return(
     <div className="w-full max-w-xs">
     <form
     onSubmit={handleSubmit(onSubmit)}
      className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+    <div className="mb-4">
+    <label
+     className="block text-gray-700 text-sm font-bold mb-2"
+     htmlFor="name"
+     >
+      Username
+      <sup className="text-red-300 text-xs -top-0.5 -right-2"
+       title="required">*</sup>
+    </label>
+    <input
+    {...register("name")}
+    className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline
+    ${errors.name && "border-red-500"}
+    rounded appearance-none focus:outline-none focus:shadow-outline`}
+    id="name"
+    name="name"
+    type="text"
+    autoComplete="username"
+    placeholder="name"
+    required
+    />
+    {errors.name && (
+            <p className="text-xs italic text-red-500 mt-2">
+              {errors.name?.message}
+            </p>
+          )}
+  </div>
     <div className="mb-4">
     <label
      className="block text-gray-700 text-sm font-bold mb-2"
@@ -43,6 +97,7 @@ const Form = () => {
        title="required">*</sup>
     </label>
     <input
+    {...register("email")}
     className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
     id="inputEmail"
     name="email"
@@ -50,7 +105,6 @@ const Form = () => {
     autoComplete="on"
     placeholder="Email"
     required
-    onChange={}
     />
   </div>
   <div className="mb-4">
@@ -69,7 +123,6 @@ const Form = () => {
     type="password" 
     placeholder="******************"
     className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-    onChange={}
     />
   </div>
   <div className="mb-6">
@@ -81,7 +134,6 @@ const Form = () => {
     title="required">*</sup>
     </label>
     <input
-    onChange={}
     required       
     placeholder="******************"
     id="confirmPassword"
@@ -98,7 +150,6 @@ const Form = () => {
     id="signup"
     name="type"
     value="signup"
-    disabled={}
     >
       Sign Up
     </button>
@@ -118,7 +169,7 @@ const Form = () => {
 </div>
     )
 }
-}
+
 
 export function Login() {
   const [login, setLogin] = useState();
@@ -183,7 +234,7 @@ export function Login() {
   }
 
 export function Logout() {
-  
+
   const [logout, setLogout] = useState<void>();
   
   return(
