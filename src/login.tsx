@@ -1,8 +1,11 @@
 import { SubmitHandler, useForm } from "react-hook-form";
+import { Form, useActionData } from '@remix-run/react'
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { ActionFunction, json } from "@remix-run/node";
+
 
 const createUserSchema = z
   .object({
@@ -23,8 +26,9 @@ const createUserSchema = z
     })
     
 type ICreateUserInput = z.infer<typeof createUserSchema>;
-    
-export function Signup() {
+
+
+    export function Signup() {
   
   const [signup, setSignup] = useState(false);
 
@@ -190,29 +194,51 @@ useEffect(() => {
 }
 
 
+type inferSafeParseErrors<T extends z.ZodType<any, any, any>, U = string> = {
+  formErrors: U[];
+  fieldErrors: {
+    [P in keyof z.infer<T>]?: U[];
+  };
+};
+
+const LoginFields = z
+.object({
+  email: z.string().min(1),
+  password: z.string().min(1),
+});
+
+type LoginFields = z.infer<typeof LoginFields>;
+type LoginFieldsErrors = inferSafeParseErrors<typeof LoginFields>;
+
+type ActionData = {
+  fields: LoginFields;
+  errors?: LoginFieldsErrors;
+};
+
+const badRequest = (data: ActionData) => json(data, { status: 400 });
+
+export const action: ActionFunction = async ({ request }) => {
+  const formData = await request.formData();
+  const fields = Object.fromEntries(formData.entries()) as LoginFields;
+  const result = LoginFields.safeParse(fields);
+  if (!result.success) {
+    return badRequest({
+      fields,
+      errors: result.error.flatten(),
+    });
+  }
+  return json({ fields });
+};
+
+
 export function Login() {
 
-
-  const [login, setLogin] = useState();
-  const [logged, isLogged] = useState(false);  
-
-  const loginUserSchema = z
-  .object({
-      email: z.string().min(1, { message: 'Email is required' }).email(
-        'Invalid email or password'
-        ),
-      password: z.string().min(1, { message: 'Password is required' }).min(
-        8,
-        'Invalid email or password'
-      ),
-    })
-
-    type ILoginUserInput = z.infer<typeof loginUserSchema>;
+  let data = useActionData<ActionData>();
 
   return(  
       <>
 <div className="w-full max-w-xs">
-    <form className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+    <Form method="post" className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
       <div className="mb-4">
         <label
         className="block text-gray-700 text-sm font-bold mb-2" 
@@ -220,30 +246,38 @@ export function Login() {
           Email
         </label>
         <input
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
           id="email"
           name="email"
           type="text"
           placeholder="Email"
-          autoComplete="on" />
+          autoComplete="on"
+          defaultValue={data?.fields.email}
+          className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline
+          ${data?.errors?.fieldErrors.email && 'border-red-500'}`}
+          />
+
       </div>
       <div className="mb-6">
-        <label 
+        <label
         className="block text-gray-700 text-sm font-bold mb-2" 
         htmlFor="password"
         >
           Password
         </label>
-        <input className="shadow appearance-none border border-gray-500 rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+        <input 
           id="password"
           type="password"
-          name="loginPassword"
+          name="password"
           placeholder="******************"
+          defaultValue={data?.fields.password}
+          className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline
+          ${data?.errors?.fieldErrors.password && 'border-red-500'}`}
           />
       </div>
       <div className="flex items-center justify-between">
         <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-          type="button" role="alert">
+          type="submit"
+          >
           Login
         </button>
         <a className="pl-4 inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
@@ -261,7 +295,7 @@ export function Login() {
           </Link>
         </a>
       </div>
-    </form>
+    </Form>
     </div>
     </>
     )
