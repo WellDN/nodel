@@ -1,11 +1,8 @@
 import { SubmitHandler, useForm } from "react-hook-form";
-import { Form, useActionData } from '@remix-run/react'
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ActionFunction, json } from "@remix-run/node";
-
 
 const createUserSchema = z
   .object({
@@ -194,51 +191,13 @@ useEffect(() => {
 }
 
 
-type inferSafeParseErrors<T extends z.ZodType<any, any, any>, U = string> = {
-  formErrors: U[];
-  fieldErrors: {
-    [P in keyof z.infer<T>]?: U[];
-  };
-};
-
-const LoginFields = z
-.object({
-  email: z.string().min(1),
-  password: z.string().min(1),
-});
-
-type LoginFields = z.infer<typeof LoginFields>;
-type LoginFieldsErrors = inferSafeParseErrors<typeof LoginFields>;
-
-type ActionData = {
-  fields: LoginFields;
-  errors?: LoginFieldsErrors;
-};
-
-const badRequest = (data: ActionData) => json(data, { status: 400 });
-
-export const action: ActionFunction = async ({ request }) => {
-  const formData = await request.formData();
-  const fields = Object.fromEntries(formData.entries()) as LoginFields;
-  const result = LoginFields.safeParse(fields);
-  if (!result.success) {
-    return badRequest({
-      fields,
-      errors: result.error.flatten(),
-    });
-  }
-  return json({ fields });
-};
-
 
 export function Login() {
-
-  let data = useActionData<ActionData>();
 
   return(  
       <>
 <div className="w-full max-w-xs">
-    <Form method="post" className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+    <form className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
       <div className="mb-4">
         <label
         className="block text-gray-700 text-sm font-bold mb-2" 
@@ -251,11 +210,7 @@ export function Login() {
           type="text"
           placeholder="Email"
           autoComplete="on"
-          defaultValue={data?.fields.email}
-          className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline
-          ${data?.errors?.fieldErrors.email && 'border-red-500'}`}
           />
-
       </div>
       <div className="mb-6">
         <label
@@ -269,9 +224,6 @@ export function Login() {
           type="password"
           name="password"
           placeholder="******************"
-          defaultValue={data?.fields.password}
-          className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline
-          ${data?.errors?.fieldErrors.password && 'border-red-500'}`}
           />
       </div>
       <div className="flex items-center justify-between">
@@ -295,15 +247,13 @@ export function Login() {
           </Link>
         </a>
       </div>
-    </Form>
+    </form>
     </div>
     </>
     )
   }
 
 export function Logout() {
-
-  const [logout, setLogout] = useState<void>();
   
   return(
         <div>

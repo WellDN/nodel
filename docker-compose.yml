@@ -1,25 +1,13 @@
-version: '3.8'
+version: "3.7"
 services:
-  mongo:
-    image: mongo:latest
-    container_name: mongo
+  postgres:
+    image: postgres:latest
+    restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
-      MONGO_INITDB_DATABASE: ${MONGODB_DATABASE_NAME}
-    env_file:
-      - ./.env
-    volumes:
-      - mongo:/data/db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
     ports:
-      - '6000:27017'
-  redis:
-    image: redis:latest
-    container_name: redis
-    ports:
-      - '6379:6379'
+      - "5432:5432"
     volumes:
-      - redis:/data
-volumes:
-  mongo:
-  redis:
+      - ./postgres-data:/var/lib/postgresql/data

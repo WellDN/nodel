@@ -1,1 +1,1 @@
-# Authentication with Jwt, Node, Express, Axios, Mongoose, MongoDB, Docker & Zod
+# Authentication with Jwt, Node, Express, postgresql, Prisma, Docker & Zod
