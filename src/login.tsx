@@ -1,8 +1,20 @@
+
+import { createUserSession, getUserId } from "./session-server";
+import { safeRedirect, validateEmail } from "./utils";
+
+
+
+import { Form, Link, useActionData, useSearchParams } from "@remix-run/react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { string, z } from "zod";
+import type { ActionArgs, LoaderArgs, MetaFunction } from "@remix-run/node";
+import { createCookieSessionStorage, redirect, json } from "@remix-run/node";
+import invariant from "tiny-invariant";
+import { User, verifyLogin } from "./user-server";
+import { getUserById } from "./user-server";
+
 
 const createUserSchema = z
   .object({
@@ -23,7 +35,6 @@ const createUserSchema = z
     })
     
 type ICreateUserInput = z.infer<typeof createUserSchema>;
-
 
     export function Signup() {
   
@@ -190,14 +201,83 @@ useEffect(() => {
     )
 }
 
+async function loader({ request }: LoaderArgs) {
+  const userId = await getUserId(request);
+  if (userId) return redirect("/");
+  return json({});
+}
 
+ async function action({ request }: ActionArgs) {
+  const formData = await request.formData();
+  const email = formData.get("email");
+  const password = formData.get("password");
+  const redirectTo = safeRedirect(formData.get("redirectTo"), "/");
+  const remember = formData.get("remember");
 
-export function Login() {
+  if (!validateEmail(email)) {
+    return json(
+      { errors: { email: "Email is invalid", password: null } },
+      { status: 400 }
+    );
+  }
 
-  return(  
-      <>
+  if (typeof password !== "string" || password.length === 0) {
+    return json(
+      { errors: { password: "Password is required", email: null } },
+      { status: 400 }
+    );
+  }
+
+  if (password.length < 8) {
+    return json(
+      { errors: { password: "Password is too short", email: null } },
+      { status: 400 }
+    );
+  }
+
+  const user = await verifyLogin(email, password);
+
+  if (!user) {
+    return json(
+      { errors: { email: "Invalid email or password", password: null } },
+      { status: 400 }
+    );
+  }
+
+  return createUserSession({
+    request,
+    userId: user.id,
+    remember: remember === "on" ? true : false,
+    redirectTo,
+  });
+}
+
+export const meta: MetaFunction = () => {
+  return {
+    title: "Login",
+  };
+};
+ 
+  export function Login() {
+    
+    const [searchParams] = useSearchParams();
+    const redirectTo = searchParams.get("redirectTo") || "/notes";
+    const actionData = useActionData<typeof action>();
+    const emailRef = React.useRef<HTMLInputElement>(null);
+    const passwordRef = React.useRef<HTMLInputElement>(null);
+  
+    React.useEffect(() => {
+      if (actionData?.errors?.email) {
+        emailRef.current?.focus();
+      } else if (actionData?.errors?.password) {
+        passwordRef.current?.focus();
+      }
+    }, [actionData]);
+
+  return(
 <div className="w-full max-w-xs">
-    <form className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+    <Form
+      className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
       <div className="mb-4">
         <label
         className="block text-gray-700 text-sm font-bold mb-2" 
@@ -210,6 +290,7 @@ export function Login() {
           type="text"
           placeholder="Email"
           autoComplete="on"
+          className={"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"}
           />
       </div>
       <div className="mb-6">
@@ -219,11 +300,12 @@ export function Login() {
         >
           Password
         </label>
-        <input 
+        <input
           id="password"
           type="password"
           name="password"
           placeholder="******************"
+          className={"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"}
           />
       </div>
       <div className="flex items-center justify-between">
@@ -239,21 +321,14 @@ export function Login() {
             Don't have an account?
           </Link>
         </a>
-        <a className="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
-          <Link className=""
-            to={"/forgot-password"}
-          >
-            Forgot Password?
-          </Link>
-        </a>
       </div>
-    </form>
+    </Form>
     </div>
-    </>
     )
   }
 
-export function Logout() {
+
+  export function Logout() {
   
   return(
         <div>
