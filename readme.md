@@ -1,1 +1,1 @@
-# Authentication with Jwt, Node, Express, postgresql, Prisma, Docker & Zod
+# Authentication & CRUD with Jwt, Node, postgresql & Docker
